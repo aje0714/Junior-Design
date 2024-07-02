@@ -1,6 +1,8 @@
 #include <LiquidCrystal_I2C.h>
+#include <Arduino.h>
+#include "mp3tf16p.h"
 
-//Define pins here - needs redefining
+//Define pins here
 #define StartBtn 23
 #define RedRGB 5
 #define BlueRGB 6
@@ -10,7 +12,11 @@
 #define DownBtn 11
 #define LeftBtn 12
 #define RightBtn 13
+#define RX 2
+#define TX 3
+#define Reset 1
 
+MP3 mp3(10,11);
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 //Score variable
@@ -27,8 +33,21 @@ void setup() {
   lcd.setCursor(5, 0);
   lcd.print("0");
 
-  pinMode(StartBtn, INPUT);
+  Serial.begin(9600);
+  mp3.initalize();
 
+  pinMode(StartBtn, INPUT);
+  pinMode(RedRGB, OUTPUT);
+  pinMode(BlueRGB, OUTPUT);
+  pinMode(GreenRGB, OUTPUT);
+  pinMode(CoinBtn, INPUT);
+  pinMode(UpBtn, INPUT);
+  pinMode(DownBtn, INPUT);
+  pinMode(LeftBtn, INPUT);
+  pinMode(RightBtn, INPUT);
+  pinMode(RX, OUTPUT);
+  pinMode(TX, INPUT);
+  pinMode(Reset, INPUT);
 }
 
 //Code that is continuously ran
@@ -80,12 +99,16 @@ void runRound() {
 
 //Method used to sound audio from MP3
 void makeNoise(int choice) {
-
+  mp3.playTrackNumber(choice, 30, false);
+  while(!mp3.playCompleted()) {
+    //Stay in this loop until mp3 finishes playing
+  }
 }
 
 //Method used to display score to LCD screen
 void displayScore() {
-
+  String scoreChar = String(score);
+  lcd.print(scoreChar);
 }
 
 /*
@@ -96,7 +119,7 @@ void gameOver() {
   //Play game over noise
   makeNoise(4);
   //Turn on Red LED
-  digitalWrite(RedLED, HIGH);
+  digitalWrite(RedRGB, HIGH);
   //Display final score on LCD screen
   displayScore();
 }
